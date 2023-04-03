@@ -1,23 +1,35 @@
 <script lang="ts">
-  import sinProcessorUrl from "$lib/audio-processor.ts?url";
-  import { onMount } from "svelte";
-  console.log(sinProcessorUrl);
+    import { onMount } from "svelte";
 
-  async function start() {
-    const audioContext = new AudioContext();
+    import rustProcessorUrl from "$lib/audio-processor.ts?url";
+    import wasmUrl from "$lib/wasm/rust_wasm_bg.wasm?url";
 
-    await audioContext.resume();
-    await audioContext.audioWorklet.addModule(sinProcessorUrl);
+    let wasmModulePromise: Promise<ArrayBuffer>;
 
-    const worklet = new AudioWorkletNode(audioContext, "sin-processor");
-    console.log(worklet);
+    // start loading the wasm module immediately
+    onMount(() => {
+        wasmModulePromise = fetch(wasmUrl).then((res) => res.arrayBuffer());
+    });
 
-    worklet.connect(audioContext.destination);
-  }
+    async function start() {
+        // create an audio context
+        const audioContext = new AudioContext();
+
+        // register the processor
+        await audioContext.audioWorklet.addModule(rustProcessorUrl);
+
+        // get the wasm (as array buffer)
+        const module = await wasmModulePromise;
+
+        // construct the processor
+        const worklet = new AudioWorkletNode(audioContext, "RustProcessor", {
+            processorOptions: { module },
+        });
+
+        // connect to output!
+        worklet.connect(audioContext.destination);
+    }
 </script>
 
 <svelte:window on:click={start} />
-<h1>Welcome to SvelteKit</h1>
-<p>
-  Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation
-</p>
+<h1>Click to start playback</h1>
