@@ -1,20 +1,20 @@
-import { initSync, type InitOutput, Oscillator } from "./wasm/rust_wasm";
+import { initSync, Oscillator } from "./wasm/rust_wasm";
 
 class RustProcessor extends AudioWorkletProcessor {
-  instance: InitOutput;
   oscillator: Oscillator;
 
   constructor(options?: AudioWorkletNodeOptions) {
     super();
 
+    // init the wasm module
     let { module } = options?.processorOptions;
-    let instance = initSync(module);
+    initSync(module);
 
-    this.instance = instance;
+    // construct an oscillator (in wasm)
     this.oscillator = Oscillator.new();
   }
 
-  process(inputs: Float32Array[][], outputs: Float32Array[][]) {
+  process(_inputs: Float32Array[][], outputs: Float32Array[][]) {
     for (let i = 0; i < outputs[0].length; i++) {
       this.oscillator.process(outputs[0][i]);
     }

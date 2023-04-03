@@ -1,3 +1,4 @@
+// provide missing typescript types for audio worklets
 // https://github.com/microsoft/TypeScript/issues/28308#issuecomment-650802278
 interface AudioWorkletProcessor {
     readonly port: MessagePort;

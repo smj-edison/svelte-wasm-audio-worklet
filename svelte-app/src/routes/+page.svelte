@@ -12,14 +12,13 @@
     });
 
     async function start() {
-        // create an audio context
         const audioContext = new AudioContext();
 
         // register the processor
         await audioContext.audioWorklet.addModule(rustProcessorUrl);
 
-        // get the wasm (as array buffer)
-        const module = await wasmModulePromise;
+        // get the wasm
+        const module: ArrayBuffer = await wasmModulePromise;
 
         // construct the processor
         const worklet = new AudioWorkletNode(audioContext, "RustProcessor", {
