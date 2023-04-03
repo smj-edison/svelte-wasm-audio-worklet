@@ -1,18 +1,29 @@
-class SinProcessor extends AudioWorkletProcessor {
+import { initSync, type InitOutput, Oscillator } from "./wasm/rust_wasm";
+
+class RustProcessor extends AudioWorkletProcessor {
+  instance: InitOutput;
+  oscillator: Oscillator;
+
+  constructor(options?: AudioWorkletNodeOptions) {
+    super();
+
+    let { module } = options?.processorOptions;
+    let instance = initSync(module);
+
+    this.instance = instance;
+    this.oscillator = Oscillator.new();
+  }
+
   process(inputs: Float32Array[][], outputs: Float32Array[][]) {
     for (let i = 0; i < outputs[0].length; i++) {
-      for (let j = 0; j < outputs[0][i].length; j++) {
-        outputs[0][i][j] = Math.sin(
-          ((currentTime + j) * Math.PI * 2 * 440) / 44100
-        );
-      }
+      this.oscillator.process(outputs[0][i]);
     }
 
     return true;
   }
 }
 
-registerProcessor("sin-processor", SinProcessor);
+registerProcessor("RustProcessor", RustProcessor);
 
 // to make typescript happy
 export type {}
